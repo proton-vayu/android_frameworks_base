@@ -5257,6 +5257,12 @@ public final class Settings {
          */
         public static final String TORCH_POWER_BUTTON_GESTURE = "torch_power_button_gesture";
 
+	/**
+         * Three Finger Gesture from Oppo
+         * @hide
+         */
+        public static final String THREE_FINGER_GESTURE = "three_finger_gesture";
+
         /**
          * These are all public system settings
          *
