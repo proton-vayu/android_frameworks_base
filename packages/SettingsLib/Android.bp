@@ -13,6 +13,7 @@ android_library {
 
     defaults: [
         "SettingsLibDependenciesWithoutWifiTracker",
+        "framework-wifi-vendor-hide-access-defaults",
     ],
 
     // TODO(b/149540986): revert this change.
