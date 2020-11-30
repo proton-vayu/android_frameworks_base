@@ -533,6 +533,10 @@ public interface RILConstants {
     int RIL_REQUEST_SET_USAGE_SETTING = 227;
     int RIL_REQUEST_GET_USAGE_SETTING = 228;
 
+    /* RIL Request to get newly supported radio
+       capabilities include 5G SA*/
+    int RIL_REQUEST_GET_ENHANCED_RADIO_CAPABILITY = 600;
+
     /* Responses begin */
     int RIL_RESPONSE_ACKNOWLEDGEMENT = 800;
 
