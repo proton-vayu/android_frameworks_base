@@ -1685,6 +1685,9 @@ public final class BluetoothDevice implements Parcelable, Attributable {
 
     /** @hide */
     @UnsupportedAppUsage
+    @RequiresLegacyBluetoothPermission
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public void setBondingInitiatedLocally(boolean localInitiated) {
         final IBluetooth service = sService;
         if (service == null) {
@@ -2020,6 +2023,9 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * @return True if the devcie is TWS+ device.
      * @hide
      */
+    @RequiresLegacyBluetoothPermission
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public boolean isTwsPlusDevice() {
          if (sService == null) {
              Log.e(TAG, "BT not enabled. Cannot query remote device sdp records");
@@ -2038,6 +2044,9 @@ public final class BluetoothDevice implements Parcelable, Attributable {
      * null.
      * @hide
      */
+    @RequiresLegacyBluetoothPermission
+    @RequiresBluetoothConnectPermission
+    @RequiresPermission(android.Manifest.permission.BLUETOOTH_CONNECT)
     public String getTwsPlusPeerAddress() {
         if (sService == null) {
             Log.e(TAG, "BT not enabled. Cannot get Remote Device name");
