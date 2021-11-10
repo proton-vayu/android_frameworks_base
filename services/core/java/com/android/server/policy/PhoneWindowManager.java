@@ -2289,7 +2289,8 @@ public class PhoneWindowManager implements WindowManagerPolicy {
 
         @Override
         void onLongPress(long eventTime) {
-            if (mSingleKeyGestureDetector.beganFromNonInteractive()) {
+            if (mSingleKeyGestureDetector.beganFromNonInteractive() ||
+                         (mTorchActionMode != 0 && isFlashLightIsOn())) {
                 if (toggleFlashLight())
                     return;
                 if (!mSupportLongPressPowerWhenNonInteractive) {
@@ -2311,6 +2312,11 @@ public class PhoneWindowManager implements WindowManagerPolicy {
         void onMultiPress(long downTime, int count) {
             powerPress(downTime, count, mSingleKeyGestureDetector.beganFromNonInteractive());
         }
+    }
+
+    private boolean isFlashLightIsOn() {
+        return Settings.Secure.getInt(mContext.getContentResolver(),
+                Settings.Secure.FLASHLIGHT_ENABLED, 0) != 0;
     }
 
     /**
