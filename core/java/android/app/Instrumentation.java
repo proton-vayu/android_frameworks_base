@@ -69,6 +69,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
 
+import com.android.internal.util.custom.GamesProps;
+
 /**
  * Base class for implementing application instrumentation code.  When running
  * with instrumentation turned on, this class will be instantiated for you
@@ -1196,6 +1198,8 @@ public class Instrumentation {
         app.attach(context);
         AttestationHooks.initApplicationBeforeOnCreate(app);
         PixelPropsUtils.setProps(app.getPackageName());
+        String packageName = app.getPackageName();
+        GamesProps.setProps(packageName);
         return app;
     }
     
@@ -1216,6 +1220,8 @@ public class Instrumentation {
         app.attach(context);
         AttestationHooks.initApplicationBeforeOnCreate(app);
         PixelPropsUtils.setProps(app.getPackageName());
+        String packageName = app.getPackageName();
+        GamesProps.setProps(packageName);
         return app;
     }
 
