@@ -1014,7 +1014,7 @@ public class GlobalActionsDialogLite implements DialogInterface.OnDismissListene
             if (!mRebootMenu && showRebootSubmenu()) {
                 mRebootMenu = true;
                 mCurrentMenuActions = mRebootMenuActions;
-                handleShow();
+                handleShow(null);
             } else {
                 mHandler.sendEmptyMessage(MESSAGE_DISMISS);
                 mWindowManagerFuncs.reboot(false, null);

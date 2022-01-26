@@ -439,7 +439,6 @@ public class CentralSurfacesImpl extends CoreStartable implements
         mCommandQueueCallbacks.togglePanel();
     }
 
-    @Override
     public void toggleCameraFlash() {
         mCommandQueueCallbacks.toggleCameraFlash();
     }
