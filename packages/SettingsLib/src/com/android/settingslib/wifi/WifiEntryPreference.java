@@ -64,6 +64,9 @@ public class WifiEntryPreference extends Preference implements WifiEntry.WifiEnt
     private final IconInjector mIconInjector;
     private WifiEntry mWifiEntry;
     private int mLevel = -1;
+    private int mWifiStandard;
+    private boolean mVhtMax8SpatialStreamsSupport;
+    private boolean mHe8ssCapableAp;
     private boolean mShowX; // Shows the Wi-Fi signl icon of Pie+x when it's true.
     private CharSequence mContentDescription;
     private OnButtonClickListener mOnButtonClickListener;
@@ -137,15 +140,36 @@ public class WifiEntryPreference extends Preference implements WifiEntry.WifiEnt
     public void refresh() {
         setTitle(mWifiEntry.getTitle());
         final int level = mWifiEntry.getLevel();
+        final int standard = mWifiEntry.getWifiStandard();
+        final boolean vhtMax8SpatialStreamsSupport = mWifiEntry.isVhtMax8SpatialStreamsSupported();
+        final boolean he8ssCapableAp = mWifiEntry.isHe8ssCapableAp();
         final boolean showX = mWifiEntry.shouldShowXLevelIcon();
-        if (level != mLevel || showX != mShowX) {
+        if (level != mLevel || showX != mShowX || standard != mWifiStandard ||
+                he8ssCapableAp != mHe8ssCapableAp ||
+                vhtMax8SpatialStreamsSupport != mVhtMax8SpatialStreamsSupport) {
             mLevel = level;
+            mWifiStandard = standard;
+            mHe8ssCapableAp = he8ssCapableAp;
+            mVhtMax8SpatialStreamsSupport = vhtMax8SpatialStreamsSupport;
             mShowX = showX;
-            updateIcon(mShowX, mLevel);
+            updateIcon(mShowX, mLevel, mWifiStandard, mHe8ssCapableAp && mVhtMax8SpatialStreamsSupport);
             notifyChanged();
         }
 
-        setSummary(mWifiEntry.getSummary(false /* concise */));
+        String summary = mWifiEntry.getSummary(false /* concise */);
+
+        if (mWifiEntry.isPskSaeTransitionMode()) {
+           summary = "WPA3(SAE Transition Mode) " + summary;
+        } else if (mWifiEntry.isOweTransitionMode()) {
+           summary = "WPA3(OWE Transition Mode) " + summary;
+        } else if (mWifiEntry.getSecurity() == WifiEntry.SECURITY_SAE) {
+           summary = "WPA3(SAE) " + summary;
+        } else if (mWifiEntry.getSecurity() == WifiEntry.SECURITY_OWE) {
+           summary = "WPA3(OWE) " + summary;
+        }
+
+        setSummary(summary);
+
         mContentDescription = buildContentDescription();
     }
 
@@ -192,13 +216,13 @@ public class WifiEntryPreference extends Preference implements WifiEntry.WifiEnt
         return accent ? android.R.attr.colorAccent : android.R.attr.colorControlNormal;
     }
 
-    private void updateIcon(boolean showX, int level) {
+    private void updateIcon(boolean showX, int level, int standard, boolean isReady) {
         if (level == -1) {
             setIcon(null);
             return;
         }
 
-        final Drawable drawable = mIconInjector.getIcon(showX, level);
+        final Drawable drawable = mIconInjector.getIcon(showX, level, standard, isReady);
         if (drawable != null) {
             drawable.setTint(Utils.getColorAttrDefaultColor(getContext(), getIconColorAttr()));
             setIcon(drawable);
@@ -269,6 +293,10 @@ public class WifiEntryPreference extends Preference implements WifiEntry.WifiEnt
 
         public Drawable getIcon(boolean showX, int level) {
             return mContext.getDrawable(WifiUtils.getInternetIconResource(level, showX));
+        }
+
+        public Drawable getIcon(boolean showX, int level, int standard, boolean isReady) {
+            return mContext.getDrawable(WifiUtils.getInternetIconResource(level, showX, standard, isReady));
         }
     }
 

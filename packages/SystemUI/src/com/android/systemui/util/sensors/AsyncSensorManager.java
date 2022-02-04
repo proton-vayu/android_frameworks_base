@@ -86,7 +86,14 @@ public class AsyncSensorManager extends SensorManager
     protected boolean registerListenerImpl(SensorEventListener listener,
             Sensor sensor, int delayUs, Handler handler, int maxReportLatencyUs,
             int reservedFlags) {
+        if ( sensor == null ) {
+            Log.e(TAG, "sensor cannot be null \n" + Log.getStackTraceString(new Throwable()));
+            return false;
+        }
         mExecutor.execute(() -> {
+            if ( sensor == null ) {
+                Log.e(TAG, "sensor cannot be null");
+            }
             if (!mInner.registerListener(listener, sensor, delayUs, maxReportLatencyUs, handler)) {
                 Log.e(TAG, "Registering " + listener + " for " + sensor + " failed.");
             }
@@ -135,6 +142,9 @@ public class AsyncSensorManager extends SensorManager
             throw new IllegalArgumentException("sensor cannot be null");
         }
         mExecutor.execute(() -> {
+            if ( sensor == null ) {
+                Log.e(TAG, "sensor cannot be null");
+            }
             if (!mInner.requestTriggerSensor(listener, sensor)) {
                 Log.e(TAG, "Requesting " + listener + " for " + sensor + " failed.");
             }

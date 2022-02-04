@@ -16,7 +16,10 @@
 
 package com.android.systemui.qs.tiles;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.wifi.ScanResult;
+import android.net.wifi.WifiManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.UserManager;
@@ -50,12 +53,16 @@ import javax.inject.Inject;
 public class HotspotTile extends SecureQSTile<BooleanState> {
 
     private final Icon mEnabledStatic = ResourceIcon.get(R.drawable.ic_hotspot);
+    private final Icon mWifi4EnabledStatic = ResourceIcon.get(R.drawable.ic_wifi_4_hotspot);
+    private final Icon mWifi5EnabledStatic = ResourceIcon.get(R.drawable.ic_wifi_5_hotspot);
+    private final Icon mWifi6EnabledStatic = ResourceIcon.get(R.drawable.ic_wifi_6_hotspot);
 
     private final HotspotController mHotspotController;
     private final DataSaverController mDataSaverController;
 
     private final HotspotAndDataSaverCallbacks mCallbacks = new HotspotAndDataSaverCallbacks();
     private boolean mListening;
+    private WifiManager mWifiManager;
 
     @Inject
     public HotspotTile(
@@ -77,6 +84,7 @@ public class HotspotTile extends SecureQSTile<BooleanState> {
         mDataSaverController = dataSaverController;
         mHotspotController.observe(this, mCallbacks);
         mDataSaverController.observe(this, mCallbacks);
+        mWifiManager = (WifiManager) mContext.getSystemService(Context.WIFI_SERVICE);
     }
 
     @Override
@@ -160,6 +168,15 @@ public class HotspotTile extends SecureQSTile<BooleanState> {
         if (state.isTransient) {
             state.icon = ResourceIcon.get(
                     com.android.internal.R.drawable.ic_hotspot_transient_animation);
+        } else if (state.value) {
+            int standard = mWifiManager.getSoftApWifiStandard();
+            if (standard == ScanResult.WIFI_STANDARD_11AX) {
+                state.icon = mWifi6EnabledStatic;
+            } else if (standard == ScanResult.WIFI_STANDARD_11AC) {
+                state.icon = mWifi5EnabledStatic;
+            } else if (standard == ScanResult.WIFI_STANDARD_11N) {
+                state.icon = mWifi4EnabledStatic;
+            }
         }
         state.expandedAccessibilityClassName = Switch.class.getName();
         state.contentDescription = state.label;
