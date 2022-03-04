@@ -258,11 +258,6 @@ public class AccessPoint implements Comparable<AccessPoint> {
 
     private int mRssi = UNREACHABLE_RSSI;
 
-    private int mDeviceWifiStandard;
-    private int mWifiStandard = ScanResult.WIFI_STANDARD_LEGACY;
-    private boolean mHe8ssCapableAp;
-    private boolean mVhtMax8SpatialStreamsSupport;
-
     private WifiInfo mInfo;
     private NetworkInfo mNetworkInfo;
     AccessPointListener mAccessPointListener;
@@ -363,8 +358,6 @@ public class AccessPoint implements Comparable<AccessPoint> {
         // Calculate required fields
         updateKey();
         updateBestRssiInfo();
-        updateDeviceWifiGenerationInfo();
-        updateWifiGeneration();
     }
 
     /**
@@ -375,7 +368,6 @@ public class AccessPoint implements Comparable<AccessPoint> {
         mContext = context;
         loadConfig(config);
         updateKey();
-        updateDeviceWifiGenerationInfo();
     }
 
     /**
@@ -394,7 +386,6 @@ public class AccessPoint implements Comparable<AccessPoint> {
             mPasspointConfigurationVersion = PasspointConfigurationVersion.NO_OSU_PROVISIONED;
         }
         updateKey();
-        updateDeviceWifiGenerationInfo();
     }
 
     /**
@@ -408,7 +399,6 @@ public class AccessPoint implements Comparable<AccessPoint> {
         mConfig = config;
         mPasspointUniqueId = config.getKey();
         mFqdn = config.FQDN;
-        updateDeviceWifiGenerationInfo();
         setScanResultsPasspoint(homeScans, roamingScans);
         updateKey();
     }
@@ -420,14 +410,12 @@ public class AccessPoint implements Comparable<AccessPoint> {
             @NonNull Collection<ScanResult> results) {
         mContext = context;
         mOsuProvider = provider;
-        updateDeviceWifiGenerationInfo();
         setScanResults(results);
         updateKey();
     }
 
     AccessPoint(Context context, Collection<ScanResult> results) {
         mContext = context;
-        updateDeviceWifiGenerationInfo();
         setScanResults(results);
         updateKey();
     }
@@ -1540,11 +1528,6 @@ public class AccessPoint implements Comparable<AccessPoint> {
                 // are still seen, we will investigate further.
                 update(config); // Notifies the AccessPointListener of the change
             }
-            if (getWifiStandard() != info.getWifiStandard() ||
-                isHe8ssCapableAp() != info.isHe8ssCapableAp() ||
-                isVhtMax8SpatialStreamsSupported() != info.isVhtMax8SpatialStreamsSupported()) {
-                updated = true;
-            }
             if (mRssi != info.getRssi() && info.getRssi() != WifiInfo.INVALID_RSSI) {
                 mRssi = info.getRssi();
                 updated = true;
@@ -2079,69 +2062,5 @@ public class AccessPoint implements Comparable<AccessPoint> {
             return true;
         }
         return false;
-    }
-
-    private void updateDeviceWifiGenerationInfo() {
-        final WifiManager wifiManager = getWifiManager();
-
-        if (wifiManager.isWifiStandardSupported(ScanResult.WIFI_STANDARD_11AX))
-            mDeviceWifiStandard = ScanResult.WIFI_STANDARD_11AX;
-        else if (wifiManager.isWifiStandardSupported(ScanResult.WIFI_STANDARD_11AC))
-            mDeviceWifiStandard = ScanResult.WIFI_STANDARD_11AC;
-        else if (wifiManager.isWifiStandardSupported(ScanResult.WIFI_STANDARD_11N))
-            mDeviceWifiStandard = ScanResult.WIFI_STANDARD_11N;
-        else
-            mDeviceWifiStandard = ScanResult.WIFI_STANDARD_LEGACY;
-
-        mVhtMax8SpatialStreamsSupport = wifiManager.isVht8ssCapableDevice();
-    }
-
-    /**
-     * Updates {@link #mWifiStandard, mHe8ssCapableAp}.
-     *
-     * <p>If the given connection is active, the existing values are valid.
-     * If the given AccessPoint is not connected, a value will be calculated from previous scan
-     * results, based on minimum capability for all BSSIDs and capability of device.
-     */
-    private void updateWifiGeneration() {
-        int currResultWifiStandard;
-        int minConnectionCapability = mDeviceWifiStandard;
-
-        // Capture minimum possible connection capability
-        mHe8ssCapableAp = true;
-        for (ScanResult result : mScanResults) {
-            currResultWifiStandard = result.getWifiStandard();
-
-            // Check if atleast one bssid present without HE and 8SS support
-            if (!result.capabilities.contains("WFA-HE-READY") && mHe8ssCapableAp)
-                mHe8ssCapableAp = false;
-
-            if (currResultWifiStandard < minConnectionCapability) {
-                minConnectionCapability = currResultWifiStandard;
-            }
-        }
-
-        mWifiStandard = minConnectionCapability;
-    }
-
-    public int getWifiStandard() {
-        if (this.isActive() && mInfo != null)
-            return mInfo.getWifiStandard();
-
-        return mWifiStandard;
-    }
-
-    public boolean isHe8ssCapableAp() {
-        if (this.isActive() && mInfo != null)
-            return mInfo.isHe8ssCapableAp();
-
-        return mHe8ssCapableAp;
-    }
-
-    public boolean isVhtMax8SpatialStreamsSupported() {
-        if (this.isActive() && mInfo != null)
-            return mInfo.isVhtMax8SpatialStreamsSupported();
-
-        return mVhtMax8SpatialStreamsSupport;
     }
 }

@@ -29,7 +29,6 @@ import android.text.Html;
 import android.text.TextUtils;
 
 import com.android.internal.annotations.VisibleForTesting;
-import com.android.settingslib.AccessibilityContentDescriptions;
 import com.android.settingslib.SignalIcon.IconGroup;
 import com.android.settingslib.SignalIcon.MobileIconGroup;
 import com.android.settingslib.SignalIcon.State;
@@ -55,11 +54,6 @@ public class WifiSignalController extends
     private final WifiManager mWifiManager;
     private final boolean mProviderModelSetting;
 
-    private final IconGroup mDefaultWifiIconGroup;
-    private final IconGroup mWifi4IconGroup;
-    private final IconGroup mWifi5IconGroup;
-    private final IconGroup mWifi6IconGroup;
-
     public WifiSignalController(
             Context context,
             boolean hasMobileDataFeature,
@@ -80,56 +74,7 @@ public class WifiSignalController extends
             wifiManager.registerTrafficStateCallback(context.getMainExecutor(),
                     new WifiTrafficStateCallback());
         }
-
-        mDefaultWifiIconGroup = new IconGroup(
-                "Wi-Fi Icons",
-                WifiIcons.WIFI_SIGNAL_STRENGTH,
-                WifiIcons.QS_WIFI_SIGNAL_STRENGTH,
-                AccessibilityContentDescriptions.WIFI_CONNECTION_STRENGTH,
-                WifiIcons.WIFI_NO_NETWORK,
-                WifiIcons.QS_WIFI_NO_NETWORK,
-                WifiIcons.WIFI_NO_NETWORK,
-                WifiIcons.QS_WIFI_NO_NETWORK,
-                AccessibilityContentDescriptions.WIFI_NO_CONNECTION
-                );
-
-        mWifi4IconGroup = new IconGroup(
-                "Wi-Fi 4 Icons",
-                WifiIcons.WIFI_4_SIGNAL_STRENGTH,
-                WifiIcons.QS_WIFI_4_SIGNAL_STRENGTH,
-                AccessibilityContentDescriptions.WIFI_CONNECTION_STRENGTH,
-                WifiIcons.WIFI_NO_NETWORK,
-                WifiIcons.QS_WIFI_NO_NETWORK,
-                WifiIcons.WIFI_NO_NETWORK,
-                WifiIcons.QS_WIFI_NO_NETWORK,
-                AccessibilityContentDescriptions.WIFI_NO_CONNECTION
-                );
-
-        mWifi5IconGroup = new IconGroup(
-                "Wi-Fi 5 Icons",
-                WifiIcons.WIFI_5_SIGNAL_STRENGTH,
-                WifiIcons.QS_WIFI_5_SIGNAL_STRENGTH,
-                AccessibilityContentDescriptions.WIFI_CONNECTION_STRENGTH,
-                WifiIcons.WIFI_NO_NETWORK,
-                WifiIcons.QS_WIFI_NO_NETWORK,
-                WifiIcons.WIFI_NO_NETWORK,
-                WifiIcons.QS_WIFI_NO_NETWORK,
-                AccessibilityContentDescriptions.WIFI_NO_CONNECTION
-                );
-
-        mWifi6IconGroup = new IconGroup(
-                "Wi-Fi 6 Icons",
-                WifiIcons.WIFI_6_SIGNAL_STRENGTH,
-                WifiIcons.QS_WIFI_6_SIGNAL_STRENGTH,
-                AccessibilityContentDescriptions.WIFI_CONNECTION_STRENGTH,
-                WifiIcons.WIFI_NO_NETWORK,
-                WifiIcons.QS_WIFI_NO_NETWORK,
-                WifiIcons.WIFI_NO_NETWORK,
-                WifiIcons.QS_WIFI_NO_NETWORK,
-                AccessibilityContentDescriptions.WIFI_NO_CONNECTION
-                );
-
-        mCurrentState.iconGroup = mLastState.iconGroup = mDefaultWifiIconGroup;
+        mCurrentState.iconGroup = mLastState.iconGroup = mUnmergedWifiIconGroup;
         mProviderModelSetting = featureFlags.isProviderModelSettingEnabled();
     }
 
@@ -237,18 +182,6 @@ public class WifiSignalController extends
         return getCurrentIconIdForCarrierWifi();
     }
 
-    private void updateIconGroup() {
-	if (mCurrentState.wifiStandard == 4) {
-            mCurrentState.iconGroup = mWifi4IconGroup;
-        } else if (mCurrentState.wifiStandard == 5) {
-            mCurrentState.iconGroup = mCurrentState.isReady ? mWifi6IconGroup : mWifi5IconGroup;
-        } else if (mCurrentState.wifiStandard == 6) {
-            mCurrentState.iconGroup = mWifi6IconGroup;
-        } else {
-            mCurrentState.iconGroup = mDefaultWifiIconGroup;
-        }
-    }
-
     /**
      * Fetches wifi initial state replacing the initial sticky broadcast.
      */
@@ -283,10 +216,9 @@ public class WifiSignalController extends
         mCurrentState.statusLabel = mWifiTracker.statusLabel;
         mCurrentState.isCarrierMerged = mWifiTracker.isCarrierMerged;
         mCurrentState.subId = mWifiTracker.subId;
-        mCurrentState.wifiStandard = mWifiTracker.wifiStandard;
-        mCurrentState.isReady = (mWifiTracker.vhtMax8SpatialStreamsSupport
-                                    && mWifiTracker.he8ssCapableAp);
-        updateIconGroup();
+        mCurrentState.iconGroup =
+                mCurrentState.isCarrierMerged ? mCarrierMergedWifiIconGroup
+                        : mUnmergedWifiIconGroup;
     }
 
     void notifyWifiLevelChangeIfNecessary(int level) {
@@ -332,16 +264,12 @@ public class WifiSignalController extends
         public String statusLabel;
         public boolean isCarrierMerged;
         public int subId;
-        public int wifiStandard;
-        public boolean isReady;
 
         @Override
         public void copyFrom(State s) {
             super.copyFrom(s);
             WifiState state = (WifiState) s;
             ssid = state.ssid;
-            wifiStandard = state.wifiStandard;
-            isReady = state.isReady;
             isTransient = state.isTransient;
             isDefault = state.isDefault;
             statusLabel = state.statusLabel;
@@ -353,8 +281,6 @@ public class WifiSignalController extends
         protected void toString(StringBuilder builder) {
             super.toString(builder);
             builder.append(",ssid=").append(ssid)
-                .append(",wifiStandard=").append(wifiStandard)
-                .append(",isReady=").append(isReady)
                 .append(",isTransient=").append(isTransient)
                 .append(",isDefault=").append(isDefault)
                 .append(",statusLabel=").append(statusLabel)
@@ -369,8 +295,6 @@ public class WifiSignalController extends
             }
             WifiState other = (WifiState) o;
             return Objects.equals(other.ssid, ssid)
-                    && other.wifiStandard == wifiStandard
-                    && other.isReady == isReady
                     && other.isTransient == isTransient
                     && other.isDefault == isDefault
                     && TextUtils.equals(other.statusLabel, statusLabel)
