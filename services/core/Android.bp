@@ -90,10 +90,7 @@ genrule {
 
 java_library_static {
     name: "services.core.unboosted",
-    defaults: [
-        "platform_service_defaults",
-        "framework-wifi-vendor-hide-access-defaults",
-    ],
+    defaults: ["platform_service_defaults"],
     srcs: [
         ":statslog-art-java-gen",
         ":services.core-sources",
