@@ -40,6 +40,7 @@ public final class GmsCompatApp {
 
     public static final String KEY_BINDER = "binder";
 
+    // called by GSF, GMS Core, Play Store during startup
     static void connect(Context ctx, String processName) {
         Binder local = new Binder();
         localBinder = local;
@@ -58,8 +59,10 @@ public final class GmsCompatApp {
                     dynamiteFileProxyService = fileProxyService;
                 }
                 iGms2Gca.connectGmsCore(processName, local, fileProxyService);
-            } else {
-                iGms2Gca.connect(ctx.getPackageName(), processName, local);
+            } else if (GmsCompat.isPlayStore()) {
+                iGms2Gca.connectPlayStore(processName, local);
+            } else if (GmsInfo.PACKAGE_GSF.equals(ctx.getPackageName())) {
+                iGms2Gca.connectGsf(processName, local);
             }
         } catch (RemoteException e) {
             throw callFailed(e);
