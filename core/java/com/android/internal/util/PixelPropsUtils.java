@@ -65,7 +65,7 @@ public class PixelPropsUtils {
         propsToChangeP5.put("DEVICE", "redfin");
         propsToChangeP5.put("PRODUCT", "redfin");
         propsToChangeP5.put("MODEL", "Pixel 5");
-        propsToChangeP5.put("FINGERPRINT", "google/redfin/redfin:13/TP1A.220624.014/8819323:user/release-keys");
+        propsToChangeP5.put("FINGERPRINT", "google/redfin/redfin:13/TP1A.220905.004/8927612:user/release-keys");
         propsToChangeP1 = new HashMap<>();
         propsToChangeP1.put("DEVICE", "marlin");
         propsToChangeP1.put("PRODUCT", "marlin");
